@@ -27,3 +27,13 @@ class Todo(models.Model):
             print("*" * depth, current)
             for child in current.children.all():
                 stack.append((child, depth + 1))
+
+    def tree_status(self):
+        stack = [(self, 1)]
+        while stack:
+            current, depth = stack.pop()
+            if not current.is_complete:
+                return False
+            for child in current.children.all():
+                stack.append((child, depth + 1))
+        return True

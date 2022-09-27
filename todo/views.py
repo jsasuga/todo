@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import action
 
 from .models import Todo
@@ -20,3 +21,14 @@ class TodoViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'])
+    def branch_status(self, request, *args, **kwargs):
+        instance = self.get_object()
+        tree_status = instance.tree_status()
+        serializer = self.get_serializer(instance)
+
+        return Response(
+            {"branch_completed": tree_status},
+            status=status.HTTP_200_OK
+        )
