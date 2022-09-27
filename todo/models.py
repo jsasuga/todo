@@ -28,7 +28,7 @@ class Todo(models.Model):
             for child in current.children.all():
                 stack.append((child, depth + 1))
 
-    def tree_status(self):
+    def tree_status(self) -> bool:
         stack = [(self, 1)]
         while stack:
             current, depth = stack.pop()
@@ -37,3 +37,23 @@ class Todo(models.Model):
             for child in current.children.all():
                 stack.append((child, depth + 1))
         return True
+
+    def get_parent_ids(self) -> list:
+        parents = []
+        stack = [(self, 1)]
+        while stack:
+            current, depth = stack.pop()
+            parents.append(current.id)
+            if current.parent:
+                stack.append((current.parent, depth + 1))
+        return parents
+
+    def get_children_ids(self) -> list:
+        children = []
+        stack = [(self, 1)]
+        while stack:
+            current, depth = stack.pop()
+            children.append(current.id)
+            for child in current.children.all():
+                stack.append((child, depth + 1))
+        return children
