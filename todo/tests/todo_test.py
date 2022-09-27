@@ -108,3 +108,52 @@ class Todo_Test(TestCase):
         response = client.patch(todo_detail_url, data=data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert todo_name == Todo.objects.first().name
+
+    def test_branch_status(self):
+        """
+        Check the branch status for an object.
+        """
+        client = self.api_client
+        todo_pk = Todo.objects.first().pk
+        todo_is_complete = Todo.objects.first().is_complete
+        todo_detail_url = reverse('todo-detail', kwargs={'pk': todo_pk}) + '/branch_status/'
+        response = client.get(todo_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert todo_is_complete == response.data['branch_completed']
+
+    def test_update_status(self):
+        """
+        Add an object. Call an update to its status.
+        Fetch the object back and confirm that the update to the status is successful.
+        """
+        client = self.api_client
+        todo_pk = Todo.objects.first().pk
+        todo_is_complete = Todo.objects.first().is_complete
+        todo_detail_url = reverse('todo-detail', kwargs={'pk': todo_pk}) + '/update_status/'
+        response = client.patch(todo_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert todo_is_complete != response.data['is_complete']
+
+    def test_update_parent_status_correct(self):
+        """
+        Add an object. Call an update to its parent status.
+        Fetch the object back and confirm that the update to the status is successful.
+        """
+        client = self.api_client
+        todo_pk = Todo.objects.first().pk
+        todo_detail_url = reverse('todo-detail', kwargs={'pk': todo_pk}) + '/update_parent_status/'
+        todo_dict = factory.build(
+            dict, FACTORY_CLASS=TodoFactory, todo=self.todo.id)
+        response = client.patch(todo_detail_url, data=todo_dict)
+        assert response.status_code == status.HTTP_200_OK
+        assert todo_dict['is_complete'] == response.data['is_complete']
+
+    def test_update_parent_status_no_body_throw_error(self):
+        """
+        Return a 400 because the field "is_complete" wasn't provided
+        """
+        client = self.api_client
+        todo_pk = Todo.objects.first().pk
+        todo_detail_url = reverse('todo-detail', kwargs={'pk': todo_pk}) + '/update_parent_status/'
+        response = client.patch(todo_detail_url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
